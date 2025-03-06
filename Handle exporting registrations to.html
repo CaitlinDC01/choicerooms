@@ -1,0 +1,649 @@
+  // Handle exporting registrations to CSV
+  const handleExportCSV = () => {
+    // Skip if no registrations
+    if (registrations.length === 0) {
+      alert('No registrations to export.');
+      return;
+    }
+    
+    // CSV headers
+    const headers = [
+      'Student Name',
+      'Student ID',
+      'Grade',
+      'Room Name',
+      'Room Number',
+      'Teacher'
+    ];
+    
+    // Format data for CSV
+    const csvData = registrations.map(reg => [
+      reg.name,
+      reg.studentId,
+      reg.grade,
+      reg.className,
+      reg.roomNumber,
+      reg.teacher
+    ]);
+    
+    // Add headers to beginning
+    csvData.unshift(headers);
+    
+    // Convert to CSV string
+    const csvString = csvData
+      .map(row => row.map(cell => `"${cell}"`).join(','))
+      .join('\n');
+    
+    // Create download link
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    
+    // Set download attributes
+    const dateStr = new Date().toISOString().split('T')[0];
+    link.setAttribute('href', url);
+    link.setAttribute('download', `room-registrations-${dateStr}.csv`);
+    
+    // Trigger download
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  
+  // Handle exporting rooms data to CSV
+  const handleExportRoomsCSV = () => {
+    // CSV headers
+    const headers = [
+      'Room Name',
+      'Room Number',
+      'Teacher',
+      'Available Grades',
+      'Capacity',
+      'Current Enrollment',
+      'Spots Remaining'
+    ];
+    
+    // Format data for CSV
+    const csvData = classes.map(cls => [
+      cls.name,
+      cls.roomNumber,
+      cls.teacher,
+      cls.availableGrades.join(', '),
+      cls.capacity,
+      cls.enrolled,
+      cls.capacity - cls.enrolled
+    ]);
+    
+    // Add headers to beginning
+    csvData.unshift(headers);
+    
+    // Convert to CSV string
+    const csvString = csvData
+      .map(row => row.map(cell => `"${cell}"`).join(','))
+      .join('\n');
+    
+    // Create download link
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    
+    // Set download attributes
+    const dateStr = new Date().toISOString().split('T')[0];
+    link.setAttribute('href', url);
+    link.setAttribute('download', `rooms-data-${dateStr}.csv`);
+    
+    // Trigger download
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };import React, { useState, useEffect } from 'react';
+
+const ClassRegistrationSystem = () => {
+  // Room data from the spreadsheet
+  const [classes, setClasses] = useState([
+    {id:1,name:"The Fold & Deal",roomNumber:"2229",teacher:"Banh",capacity:20,enrolled:0,availableGrades:[6]},
+    {id:2,name:"Recess",roomNumber:"1415 (then outside)",teacher:"Bledsoe",capacity:20,enrolled:0,availableGrades:[6]},
+    {id:3,name:"Relax and Draw",roomNumber:"2235",teacher:"Cleary",capacity:20,enrolled:0,availableGrades:[6]},
+    {id:4,name:"Games, Coloring, Word Searches, Oh My!",roomNumber:"1414",teacher:"Durochez",capacity:20,enrolled:0,availableGrades:[6]},
+    {id:5,name:"Origami",roomNumber:"1435",teacher:"Gaskey",capacity:20,enrolled:0,availableGrades:[6]},
+    {id:6,name:"Pick-up Basketball",roomNumber:"Old Gym",teacher:"McKinney/McNeal",capacity:20,enrolled:0,availableGrades:[6]},
+    {id:7,name:"Pick-up Basketball",roomNumber:"New gym",teacher:"Medina/Leitko",capacity:20,enrolled:0,availableGrades:[6]},
+    {id:8,name:"Stress Less: Color & Chill",roomNumber:"2205",teacher:"Miller",capacity:20,enrolled:0,availableGrades:[6]},
+    {id:9,name:"Cars and Popcorn",roomNumber:"1412",teacher:"Moore",capacity:20,enrolled:0,availableGrades:[6]},
+    {id:10,name:"The Audible Art Studio",roomNumber:"1413",teacher:"Pinones",capacity:20,enrolled:0,availableGrades:[6]},
+    {id:11,name:"Reading Corner",roomNumber:"1235",teacher:"Pipkin",capacity:20,enrolled:0,availableGrades:[6]},
+    {id:12,name:"Elements Unite",roomNumber:"2406",teacher:"Robinson",capacity:20,enrolled:0,availableGrades:[6]},
+    {id:13,name:"Coloring and music",roomNumber:"2207",teacher:"Shnol",capacity:20,enrolled:0,availableGrades:[6]},
+    {id:14,name:"Lego Fun",roomNumber:"2407",teacher:"Slattery",capacity:20,enrolled:0,availableGrades:[6]},
+    {id:15,name:"Computer Games",roomNumber:"1229",teacher:"Alfred",capacity:20,enrolled:0,availableGrades:[6,7,8]},
+    {id:16,name:"Karaoke",roomNumber:"1708",teacher:"Amandola",capacity:20,enrolled:0,availableGrades:[6,7,8]},
+    {id:17,name:"The Shuffle Spot",roomNumber:"1234",teacher:"Bailey",capacity:20,enrolled:0,availableGrades:[6,7,8]},
+    {id:18,name:"Learn to Crochet!",roomNumber:"2411",teacher:"M. Bell",capacity:20,enrolled:0,availableGrades:[6,7,8]},
+    {id:19,name:"The Quest for the Lost Treasure",roomNumber:"2427",teacher:"A. Bell/Myles",capacity:20,enrolled:0,availableGrades:[6,7,8]},
+    {id:20,name:"Arcade",roomNumber:"2410",teacher:"Brown",capacity:20,enrolled:0,availableGrades:[6,7,8]},
+    {id:21,name:"Come play Chess",roomNumber:"2238",teacher:"Byford",capacity:20,enrolled:0,availableGrades:[6,7,8]},
+    {id:22,name:"Open Mic Night",roomNumber:"1427",teacher:"Cloyd",capacity:20,enrolled:0,availableGrades:[6,7,8]},
+    {id:23,name:"Relax and Chill",roomNumber:"2203",teacher:"Collins",capacity:20,enrolled:0,availableGrades:[6,7,8]},
+    {id:24,name:"Power Up and Play!",roomNumber:"Cafe",teacher:"D/ Burnett",capacity:20,enrolled:0,availableGrades:[6,7,8]},
+    {id:25,name:"No Go Room",roomNumber:"Museum",teacher:"Daniels/ Z",capacity:20,enrolled:0,availableGrades:[6,7,8]},
+    {id:26,name:"Moana and Popcorn",roomNumber:"2412",teacher:"Klump",capacity:20,enrolled:0,availableGrades:[6,7,8]},
+    {id:27,name:"Sew Crafty",roomNumber:"1204",teacher:"Naquin",capacity:20,enrolled:0,availableGrades:[6,7,8]},
+    {id:28,name:"Baseball Movie-The Sandlot",roomNumber:"2432",teacher:"Penske",capacity:20,enrolled:0,availableGrades:[6,7,8]},
+    {id:29,name:"Recharge and Play Recess",roomNumber:"Outside-Front of Building",teacher:"Phillips/ Traylor",capacity:20,enrolled:0,availableGrades:[6,7,8]},
+    {id:30,name:"Movie Room-Sing and Popcorn",roomNumber:"1428",teacher:"Reisdorf",capacity:20,enrolled:0,availableGrades:[6,7,8]},
+    {id:31,name:"Learn to play Old-Fashioned game of JACKS!",roomNumber:"TBD",teacher:"Rivera",capacity:20,enrolled:0,availableGrades:[6,7,8]},
+    {id:32,name:"Kickball",roomNumber:"Football field",teacher:"Thomason/ Worth",capacity:20,enrolled:0,availableGrades:[6,7,8]},
+    {id:33,name:"Eggcellent Minute to Win It Games",roomNumber:"2409",teacher:"Tuer",capacity:20,enrolled:0,availableGrades:[6,7,8]},
+    {id:34,name:"Minions and a Cookie",roomNumber:"1432",teacher:"Gallagher",capacity:20,enrolled:0,availableGrades:[7]},
+    {id:35,name:"Mario Cart Tournament",roomNumber:"1433",teacher:"Guillot",capacity:20,enrolled:0,availableGrades:[7]},
+    {id:36,name:"Karaoke",roomNumber:"2234",teacher:"Hayes",capacity:20,enrolled:0,availableGrades:[7]},
+    {id:37,name:"Board Games",roomNumber:"2434",teacher:"Kultgen",capacity:20,enrolled:0,availableGrades:[7]},
+    {id:38,name:"Zen Coloring and Tea Time in the Artroom",roomNumber:"2208",teacher:"Boyles",capacity:20,enrolled:0,availableGrades:[7,8]},
+    {id:39,name:"The Compassion Corner",roomNumber:"1410",teacher:"Collins",capacity:20,enrolled:0,availableGrades:[7,8]},
+    {id:40,name:"The Zen Den-Mandalas and Music",roomNumber:"1231",teacher:"McNiel",capacity:20,enrolled:0,availableGrades:[7,8]},
+    {id:41,name:"The Reading Café",roomNumber:"1232",teacher:"Medina",capacity:20,enrolled:0,availableGrades:[7,8]},
+    {id:42,name:"The Card Cave",roomNumber:"1405",teacher:"Pargmann",capacity:20,enrolled:0,availableGrades:[7,8]},
+    {id:43,name:"Stained Glass Magic: Tissue Paper Crafts",roomNumber:"1240",teacher:"Tinder",capacity:20,enrolled:0,availableGrades:[7,8]},
+    {id:44,name:"Soccer",roomNumber:"Practice field",teacher:"Tuliao",capacity:20,enrolled:0,availableGrades:[7,8]},
+    {id:45,name:"Good Vibes Only-Music and Relaxation",roomNumber:"2204",teacher:"Vydianathan",capacity:20,enrolled:0,availableGrades:[7,8]},
+    {id:46,name:"Chinese Jump rope",roomNumber:"outside grassy area",teacher:"Wadsworth",capacity:20,enrolled:0,availableGrades:[7,8]},
+    {id:47,name:"Computer Gamer's Paradise",roomNumber:"2417",teacher:"Warren",capacity:20,enrolled:0,availableGrades:[7,8]},
+    {id:48,name:"Flag Football",roomNumber:"Football field",teacher:"Webber",capacity:20,enrolled:0,availableGrades:[7,8]},
+    {id:49,name:"The Petri Dish-Biology Review Games",roomNumber:"2426",teacher:"Wilson",capacity:20,enrolled:0,availableGrades:[7,8]},
+    {id:50,name:"Pick-up Basketball",roomNumber:"Old Gym",teacher:"Yancey/Hall",capacity:20,enrolled:0,availableGrades:[7,8]},
+    {id:51,name:"Mario Kart Tournament of Champions",roomNumber:"1238",teacher:"Benavides",capacity:20,enrolled:0,availableGrades:[8]},
+    {id:52,name:"Games, Karaoke, Bring Your Own Device!",roomNumber:"2232",teacher:"Canahuati",capacity:20,enrolled:0,availableGrades:[8]},
+    {id:53,name:"Social Arts",roomNumber:"2206",teacher:"Loehr",capacity:20,enrolled:0,availableGrades:[8]},
+    {id:54,name:"Relax and Chill",roomNumber:"1236",teacher:"Lovoi",capacity:20,enrolled:0,availableGrades:[8]},
+    {id:55,name:"Dance Dance Revolution",roomNumber:"1431",teacher:"Palkovics",capacity:20,enrolled:0,availableGrades:[8]},
+    {id:56,name:"Paper & Palette",roomNumber:"1430",teacher:"Theiss",capacity:20,enrolled:0,availableGrades:[8]}
+  ]);
+
+  // Student state
+  const [student, setStudent] = useState({
+    name: '',
+    studentId: '',
+    grade: 6,
+    selectedClass: null
+  });
+
+  // List of registered students
+  const [registrations, setRegistrations] = useState([]);
+
+  // Admin view toggle
+  const [showAdmin, setShowAdmin] = useState(false);
+
+  // Filter classes based on student grade and availability
+  const availableClasses = classes.filter(c => 
+    c.availableGrades.includes(student.grade) && 
+    c.enrolled < c.capacity
+  );
+
+  // Handle student information change
+  const handleStudentChange = (e) => {
+    const { name, value } = e.target;
+    setStudent({
+      ...student,
+      [name]: name === 'grade' ? parseInt(value) : value
+    });
+  };
+
+  // Handle class selection
+  const handleClassSelect = (classId) => {
+    setStudent({
+      ...student,
+      selectedClass: classId
+    });
+  };
+
+  // Handle registration submission
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    if (!student.name || !student.studentId || !student.selectedClass) {
+      alert('Please enter your name, student ID, and select a room.');
+      return;
+    }
+    
+    // Validate student ID (numbers only)
+    if (!/^\d+$/.test(student.studentId)) {
+      alert('Please enter a valid student ID (numbers only, no "S" prefix).');
+      return;
+    }
+    
+    // Find the selected class
+    const selectedClass = classes.find(c => c.id === student.selectedClass);
+    
+    if (!selectedClass || selectedClass.enrolled >= selectedClass.capacity) {
+      alert('This class is no longer available.');
+      return;
+    }
+    
+    // Register the student
+    const newRegistration = {
+      id: Date.now(),
+      name: student.name,
+      studentId: student.studentId,
+      grade: student.grade,
+      classId: student.selectedClass,
+      className: selectedClass.name,
+      roomNumber: selectedClass.roomNumber,
+      teacher: selectedClass.teacher
+    };
+    
+    // Update the registrations
+    setRegistrations([...registrations, newRegistration]);
+    
+    // Update the class enrollment
+    setClasses(classes.map(c => 
+      c.id === student.selectedClass ? { ...c, enrolled: c.enrolled + 1 } : c
+    ));
+    
+    // Reset student form
+    setStudent({
+      name: '',
+      studentId: '',
+      grade: student.grade,
+      selectedClass: null
+    });
+    
+    alert(`${student.name} has been successfully registered for ${selectedClass.name} with ${selectedClass.teacher} in room ${selectedClass.roomNumber}.`);
+  };
+
+  // Handle removing a registration (admin function)
+  const handleRemoveRegistration = (regId, classId) => {
+    // Remove from registrations
+    setRegistrations(registrations.filter(r => r.id !== regId));
+    
+    // Decrement the class enrollment
+    setClasses(classes.map(c => 
+      c.id === classId ? { ...c, enrolled: c.enrolled - 1 } : c
+    ));
+  };
+
+  // Handle updating class capacity (admin function)
+  const handleUpdateCapacity = (classId, newCapacity) => {
+    setClasses(classes.map(c => 
+      c.id === classId ? { ...c, capacity: parseInt(newCapacity) } : c
+    ));
+  };
+
+  // Handle adding a new class (admin function)
+  const [newClass, setNewClass] = useState({
+    name: '',
+    roomNumber: '',
+    teacher: '',
+    capacity: 20,
+    availableGrades: [6, 7, 8]
+  });
+
+  const handleNewClassChange = (e) => {
+    const { name, value } = e.target;
+    setNewClass({
+      ...newClass,
+      [name]: name === 'capacity' ? parseInt(value) : value
+    });
+  };
+
+  const handleGradeToggle = (grade) => {
+    setNewClass({
+      ...newClass,
+      availableGrades: newClass.availableGrades.includes(grade)
+        ? newClass.availableGrades.filter(g => g !== grade)
+        : [...newClass.availableGrades, grade]
+    });
+  };
+
+  const handleAddClass = () => {
+    if (!newClass.name || !newClass.teacher || !newClass.roomNumber) {
+      alert('Please enter room name, room number, and teacher.');
+      return;
+    }
+    
+    const newClassEntry = {
+      id: classes.length + 1,
+      name: newClass.name,
+      roomNumber: newClass.roomNumber,
+      teacher: newClass.teacher,
+      capacity: newClass.capacity,
+      enrolled: 0,
+      availableGrades: [...newClass.availableGrades]
+    };
+    
+    setClasses([...classes, newClassEntry]);
+    
+    setNewClass({
+      name: '',
+      roomNumber: '',
+      teacher: '',
+      capacity: 20,
+      availableGrades: [6, 7, 8]
+    });
+  };
+
+  return (
+    <div className="p-6 max-w-6xl mx-auto bg-white shadow-md rounded-lg">
+      <h1 className="text-2xl font-bold mb-2 text-center">Choice Room Sign-Up System</h1>
+      <h2 className="text-lg text-center mb-4">Thursday, March 13</h2>
+      
+      <div className="text-sm text-gray-500 text-center mb-6">
+        This system will help you register for a choice room. Once a room reaches its capacity, 
+        it will no longer be available for selection.
+      </div>
+      
+      <div className="mb-4 flex justify-between">
+        <h3 className="text-lg font-semibold">Student Registration</h3>
+        <button 
+          onClick={() => setShowAdmin(!showAdmin)}
+          className="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded"
+        >
+          {showAdmin ? 'Student View' : 'Admin View'}
+        </button>
+      </div>
+      
+      {!showAdmin ? (
+        <div>
+          <form onSubmit={handleSubmit} className="mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-gray-700 font-semibold mb-2">Student Name:</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={student.name}
+                  onChange={handleStudentChange}
+                  className="w-full px-3 py-2 border rounded"
+                  placeholder="Enter your name"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-700 font-semibold mb-2">
+                  Student ID:
+                  <span className="text-red-500 text-sm ml-2 font-normal">
+                    Do NOT enter "S" in front of your ID #
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  name="studentId"
+                  value={student.studentId}
+                  onChange={handleStudentChange}
+                  className="w-full px-3 py-2 border rounded"
+                  placeholder="Enter ID number only"
+                  required
+                  pattern="[0-9]*"
+                  inputMode="numeric"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-700 font-semibold mb-2">Grade Level:</label>
+                <select
+                  name="grade"
+                  value={student.grade}
+                  onChange={handleStudentChange}
+                  className="w-full px-3 py-2 border rounded"
+                >
+                  <option value={6}>6th Grade</option>
+                  <option value={7}>7th Grade</option>
+                  <option value={8}>8th Grade</option>
+                </select>
+              </div>
+            </div>
+            
+            <h2 className="text-xl font-semibold mt-6 mb-4">Available Rooms:</h2>
+            
+            {availableClasses.length === 0 ? (
+              <p className="text-red-500">No rooms available for your grade level or all rooms are full.</p>
+            ) : (
+              <div className="grid grid-cols-1 gap-3 mb-6">
+                {availableClasses.map((cls) => (
+                  <div 
+                    key={cls.id}
+                    className={`p-4 border rounded cursor-pointer ${
+                      student.selectedClass === cls.id ? 'border-blue-500 bg-blue-50' : 'hover:bg-gray-50'
+                    }`}
+                    onClick={() => handleClassSelect(cls.id)}
+                  >
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h3 className="font-bold">{cls.name}</h3>
+                        <p className="text-gray-600">Teacher: {cls.teacher}</p>
+                        <p className="text-sm text-gray-500">Room: {cls.roomNumber}</p>
+                        <p className="text-sm text-gray-500">Available for grades: {cls.availableGrades.join(', ')}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className={cls.enrolled / cls.capacity > 0.8 ? 'text-red-600 font-bold' : ''}>
+                          {cls.enrolled} / {cls.capacity} spots filled
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {cls.capacity - cls.enrolled} spots remaining
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            <button
+              type="submit"
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:bg-gray-300"
+              disabled={!student.name || !student.studentId || !student.selectedClass}
+            >
+              Register for Room
+            </button>
+            
+            <div className="text-xs text-gray-500 mt-2">
+              By registering, you agree to attend the selected room for the entire period.
+            </div>
+          </form>
+        </div>
+      ) : (
+        <div className="admin-panel">
+          <h2 className="text-xl font-semibold mb-4">Admin Panel</h2>
+          
+          <div className="mb-6 flex flex-wrap gap-2">
+            <button
+              onClick={handleExportCSV}
+              className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+              disabled={registrations.length === 0}
+            >
+              Download Registrations CSV
+            </button>
+            
+            <button
+              onClick={handleExportRoomsCSV}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+            >
+              Download Room Data CSV
+            </button>
+          </div>
+          
+          <div className="mb-8">
+            <h3 className="text-lg font-medium mb-3">Add New Room</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-gray-700 mb-1">Room Name:</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={newClass.name}
+                  onChange={handleNewClassChange}
+                  className="w-full px-3 py-2 border rounded"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-700 mb-1">Room #:</label>
+                <input
+                  type="text"
+                  name="roomNumber"
+                  value={newClass.roomNumber}
+                  onChange={handleNewClassChange}
+                  className="w-full px-3 py-2 border rounded"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-700 mb-1">Teacher:</label>
+                <input
+                  type="text"
+                  name="teacher"
+                  value={newClass.teacher}
+                  onChange={handleNewClassChange}
+                  className="w-full px-3 py-2 border rounded"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-700 mb-1">Capacity:</label>
+                <input
+                  type="number"
+                  name="capacity"
+                  value={newClass.capacity}
+                  onChange={handleNewClassChange}
+                  min="1"
+                  className="w-full px-3 py-2 border rounded"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-700 mb-1">Available for Grades:</label>
+                <div className="flex flex-wrap gap-2">
+                  {[6, 7, 8].map(grade => (
+                    <label key={grade} className="inline-flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={newClass.availableGrades.includes(grade)}
+                        onChange={() => handleGradeToggle(grade)}
+                        className="mr-1"
+                      />
+                      <span>{grade}th</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            <button
+              onClick={handleAddClass}
+              className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+            >
+              Add Room
+            </button>
+          </div>
+          
+          <h3 className="text-lg font-medium mt-6 mb-3">Current Rooms</h3>
+          <div className="flex flex-wrap gap-4 mb-3">
+            <span className="text-gray-600 text-sm">
+              Total rooms: <strong>{classes.length}</strong>
+            </span>
+            <span className="text-gray-600 text-sm">
+              Total capacity: <strong>{classes.reduce((sum, c) => sum + c.capacity, 0)}</strong>
+            </span>
+            <span className="text-gray-600 text-sm">
+              Total enrolled: <strong>{classes.reduce((sum, c) => sum + c.enrolled, 0)}</strong>
+            </span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full border-collapse">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="border p-2 text-left">Room Name</th>
+                  <th className="border p-2 text-left">Room #</th>
+                  <th className="border p-2 text-left">Teacher</th>
+                  <th className="border p-2 text-center">Grades</th>
+                  <th className="border p-2 text-center">Enrollment</th>
+                  <th className="border p-2 text-center">Capacity</th>
+                  <th className="border p-2 text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {classes.map(cls => (
+                  <tr key={cls.id}>
+                    <td className="border p-2">{cls.name}</td>
+                    <td className="border p-2">{cls.roomNumber}</td>
+                    <td className="border p-2">{cls.teacher}</td>
+                    <td className="border p-2 text-center">{cls.availableGrades.join(', ')}</td>
+                    <td className="border p-2 text-center">{cls.enrolled}</td>
+                    <td className="border p-2 text-center">
+                      <input
+                        type="number"
+                        value={cls.capacity}
+                        onChange={(e) => handleUpdateCapacity(cls.id, e.target.value)}
+                        min={cls.enrolled}
+                        className="w-16 px-2 py-1 border rounded text-center"
+                      />
+                    </td>
+                    <td className="border p-2 text-center">
+                      <button 
+                        className="text-blue-500 hover:text-blue-700"
+                        onClick={() => {
+                          const newCapacity = prompt(`Enter new capacity for ${cls.name} (min: ${cls.enrolled}):`, cls.capacity);
+                          if (newCapacity && parseInt(newCapacity) >= cls.enrolled) {
+                            handleUpdateCapacity(cls.id, newCapacity);
+                          }
+                        }}
+                      >
+                        Edit
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          
+          <h3 className="text-lg font-medium mt-8 mb-3">Current Registrations</h3>
+          <div className="flex flex-wrap gap-2 mb-4">
+            <span className="text-gray-600 text-sm">
+              Total registrations: <strong>{registrations.length}</strong>
+            </span>
+          </div>
+          {registrations.length === 0 ? (
+            <p className="text-gray-500">No students registered yet</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full border-collapse">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="border p-2 text-left">Student</th>
+                    <th className="border p-2 text-center">Student ID</th>
+                    <th className="border p-2 text-center">Grade</th>
+                    <th className="border p-2 text-left">Room</th>
+                    <th className="border p-2 text-left">Room #</th>
+                    <th className="border p-2 text-left">Teacher</th>
+                    <th className="border p-2 text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {registrations.map(reg => (
+                    <tr key={reg.id}>
+                      <td className="border p-2">{reg.name}</td>
+                      <td className="border p-2 text-center">{reg.studentId}</td>
+                      <td className="border p-2 text-center">{reg.grade}</td>
+                      <td className="border p-2">{reg.className}</td>
+                      <td className="border p-2">{reg.roomNumber}</td>
+                      <td className="border p-2">{reg.teacher}</td>
+                      <td className="border p-2 text-center">
+                        <button
+                          onClick={() => handleRemoveRegistration(reg.id, reg.classId)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          Remove
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
